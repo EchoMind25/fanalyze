@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fanlyze — Agency Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230A0A0A'/><text x='16' y='23' text-anchor='middle' font-family='sans-serif' font-size='20' font-weight='700' fill='%23C9A84C'>F</text></svg>">
+  <style>
+    /* ─── Reset ─────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:   #0A0A0A;
+      --bg-main:   #111111;
+      --bg-card:   #161616;
+      --gold:      #C9A84C;
+      --gold-dim:  rgba(201, 168, 76, 0.12);
+      --gold-soft: rgba(201, 168, 76, 0.06);
+      --white:     #FFFFFF;
+      --muted:     #888888;
+      --border:    rgba(255, 255, 255, 0.06);
+      --border-md: rgba(255, 255, 255, 0.09);
+      --font:      'Inter', -apple-system, sans-serif;
+      --sidebar-w: 64px;
+      --sidebar-expanded: 220px;
+      --green:     #22c55e;
+      --amber:     #f59e0b;
+      --red:       #ef4444;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      color: var(--white);
+      background: var(--bg-main);
+      overflow: hidden;
+    }
+
+    /* ─── App Shell ─────────────────────────────────────────────────────── */
+    #app {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+    }
+
+    /* ─── Sidebar ────────────────────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-deep);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+      z-index: 50;
+      overflow: hidden;
+      transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #sidebar:hover {
+      width: var(--sidebar-expanded);
+    }
+
+    /* Logo area */
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      height: 64px;
+      padding: 0 0 0 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-logo .logo-icon {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      background: var(--gold-dim);
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-logo .logo-icon svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--gold);
+    }
+
+    .sidebar-logo .logo-text {
+      margin-left: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s 0.05s ease;
+    }
+
+    #sidebar:hover .logo-text { opacity: 1; }
+
+    /* Nav */
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      height: 44px;
+      padding: 0 0 0 20px;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--muted);
+      border-left: 2px solid transparent;
+      transition: background 0.15s ease, color 0.15s ease;
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--white);
+    }
+
+    .nav-item.active {
+      border-left-color: var(--gold);
+      background: var(--gold-soft);
+      color: var(--white);
+    }
+
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .nav-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-label {
+      margin-left: 14px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.15s 0.06s ease;
+    }
+
+    #sidebar:hover .nav-label { opacity: 1; }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+      padding: 16px 0 16px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .avatar-ring {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(201, 168, 76, 0.4);
+      background: var(--gold-dim);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .agency-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--gold);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s 0.06s ease;
+    }
+
+    #sidebar:hover .agency-label { opacity: 1; }
+
+    /* ─── Main ───────────────────────────────────────────────────────────── */
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: var(--bg-main);
+      position: relative;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.08) transparent;
+    }
+
+    #main::-webkit-scrollbar { width: 5px; }
+    #main::-webkit-scrollbar-track { background: transparent; }
+    #main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+    /* Torus canvas — absolute in main, top right */
+    #torus-wrap {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 300px;
+      height: 300px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #torus-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 100% 0%, transparent 40%, var(--bg-main) 75%),
+        linear-gradient(to bottom, transparent 50%, var(--bg-main) 100%);
+      pointer-events: none;
+    }
+
+    #torus-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      opacity: 0.65;
+    }
+
+    /* Main inner padding */
+    .main-inner {
+      position: relative;
+      z-index: 1;
+      padding: 28px 32px 48px;
+      min-height: 100%;
+    }
+
+    /* ─── Topbar ─────────────────────────────────────────────────────────── */
+    #topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    #topbar h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      color: var(--white);
+    }
+
+    #topbar .page-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+      font-weight: 400;
+    }
+
+    .view-switcher {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 100px;
+      padding: 4px;
+    }
+
+    .vs-option {
+      padding: 7px 18px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--muted);
+      text-decoration: none;
+      transition: background 0.2s ease, color 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .vs-option.active {
+      background: var(--gold);
+      color: #0A0A0A;
+      font-weight: 600;
+    }
+
+    .vs-option:not(.active):hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--white);
+    }
+
+    /* ─── Stat Cards ─────────────────────────────────────────────────────── */
+    #stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(201, 168, 76, 0.12);
+    }
+
+    .stat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stat-trend {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .stat-trend.up   { color: var(--green); }
+    .stat-trend.down { color: var(--red); }
+
+    .stat-trend svg {
+      width: 12px;
+      height: 12px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.white { color: var(--white); }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ─── Content Grid ───────────────────────────────────────────────────── */
+    #content-grid {
+      display: grid;
+      grid-template-columns: 65fr 35fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    #left-col, #right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ─── Panel Base ─────────────────────────────────────────────────────── */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 0.1px;
+    }
+
+    .panel-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ─── Roster Table ───────────────────────────────────────────────────── */
+    .roster-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .roster-table thead tr {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .roster-table th {
+      padding: 10px 16px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .roster-table td {
+      padding: 13px 16px;
+      font-size: 13px;
+      color: var(--white);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      vertical-align: middle;
+    }
+
+    .roster-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .roster-table tbody tr {
+      transition: background 0.12s ease;
+    }
+
+    .roster-table tbody tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .td-revenue { color: var(--gold); font-weight: 500; }
+    .td-muted   { color: var(--muted); font-size: 12px; }
+
+    .model-name {
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    .platform-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .platform-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      opacity: 0.6;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-low    { background: rgba(34,197,94,0.12);  color: #22c55e; }
+    .badge-medium { background: rgba(245,158,11,0.12); color: #f59e0b; }
+    .badge-high   { background: rgba(239,68,68,0.12);  color: #ef4444; }
+
+    /* ─── Revenue Chart ──────────────────────────────────────────────────── */
+    .chart-wrap {
+      padding: 20px 20px 16px;
+    }
+
+    .chart-svg {
+      width: 100%;
+      overflow: visible;
+    }
+
+    /* Bar animation */
+    @keyframes growBar {
+      from { transform: scaleY(0); }
+      to   { transform: scaleY(1); }
+    }
+
+    .bar-animated {
+      transform-origin: bottom;
+      animation: growBar 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .bar-animated:nth-child(1) { animation-delay: 0s; }
+    .bar-animated:nth-child(2) { animation-delay: 0.07s; }
+    .bar-animated:nth-child(3) { animation-delay: 0.14s; }
+    .bar-animated:nth-child(4) { animation-delay: 0.21s; }
+    .bar-animated:nth-child(5) { animation-delay: 0.28s; }
+    .bar-animated:nth-child(6) { animation-delay: 0.35s; }
+
+    /* ─── Glass Card (right col) ─────────────────────────────────────────── */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    /* ─── Quick Actions ──────────────────────────────────────────────────── */
+    .actions-list {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      color: var(--white);
+      padding: 11px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--font);
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+    }
+
+    .action-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    .action-btn:hover {
+      background: var(--gold);
+      color: #0A0A0A;
+      border-color: var(--gold);
+    }
+
+    .action-btn:hover svg {
+      opacity: 1;
+    }
+
+    /* ─── Activity Feed ──────────────────────────────────────────────────── */
+    .feed-list {
+      padding: 4px 0;
+      max-height: 320px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.06) transparent;
+    }
+
+    .feed-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      transition: background 0.12s ease;
+    }
+
+    .feed-item:last-child { border-bottom: none; }
+    .feed-item:hover { background: rgba(255,255,255,0.02); }
+
+    .feed-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--dot-color, var(--muted));
+      flex-shrink: 0;
+      margin-top: 5px;
+      box-shadow: 0 0 6px var(--dot-color, transparent);
+    }
+
+    .feed-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .feed-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .feed-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    .feed-time {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .feed-action {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      #content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      #stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .main-inner { padding: 16px 16px 40px; }
+      #stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .stat-value { font-size: 24px; }
+      #torus-wrap { width: 180px; height: 180px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ─── Sidebar ──────────────────────────────────────────────────────── -->
+  <aside id="sidebar">
+
+    <a class="sidebar-logo" href="fanlyze-landing.html" style="text-decoration:none;">
+      <div class="logo-icon">
+        <svg viewBox="0 0 16 16"><path d="M8 1L1 5v6l7 4 7-4V5L8 1z"/></svg>
+      </div>
+      <span class="logo-text">Fanlyze</span>
+    </a>
+
+    <nav class="sidebar-nav">
+
+      <a class="nav-item active" href="fanlyze-agency.html">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a class="nav-item" href="#roster" onclick="event.preventDefault();document.getElementById('roster').scrollIntoView({behavior:'smooth'})">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </span>
+        <span class="nav-label">Roster</span>
+      </a>
+
+      <a class="nav-item" href="#" onclick="event.preventDefault();showToast('Messages coming soon.')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </span>
+        <span class="nav-label">Messages</span>
+      </a>
+
+      <a class="nav-item" href="#analytics" onclick="event.preventDefault();document.getElementById('analytics').scrollIntoView({behavior:'smooth'})">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </span>
+        <span class="nav-label">Analytics</span>
+      </a>
+
+      <a class="nav-item" href="#" onclick="event.preventDefault();showToast('Settings coming soon.')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </span>
+        <span class="nav-label">Settings</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar-ring">A</div>
+      <span class="agency-label">Agency View</span>
+    </div>
+
+  </aside>
+
+  <!-- ─── Main ─────────────────────────────────────────────────────────── -->
+  <main id="main">
+
+    <!-- Three.js torus -->
+    <div id="torus-wrap">
+      <canvas id="torus-canvas"></canvas>
+    </div>
+
+    <div class="main-inner">
+
+      <!-- Topbar -->
+      <header id="topbar">
+        <div>
+          <h1>Dashboard</h1>
+          <div class="page-meta">February 2026 · Agency Overview</div>
+        </div>
+        <div class="view-switcher">
+          <span class="vs-option active">Agency View</span>
+          <a href="fanlyze-model.html" class="vs-option">Model View</a>
+        </div>
+      </header>
+
+      <!-- Stat Cards -->
+      <section id="stats">
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Total Models</span>
+            <span class="stat-trend up">
+              <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+              +3
+            </span>
+          </div>
+          <div class="stat-value gold">47</div>
+          <div class="stat-sub">3 added this month</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Active Subscribers</span>
+            <span class="stat-trend up">
+              <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+              +4.2%
+            </span>
+          </div>
+          <div class="stat-value white">12,840</div>
+          <div class="stat-sub">across all models</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Revenue MTD</span>
+            <span class="stat-trend up">
+              <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+              +7.8%
+            </span>
+          </div>
+          <div class="stat-value gold">$84,320</div>
+          <div class="stat-sub">vs $78,300 last month</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Avg Fan LTV</span>
+            <span class="stat-trend down">
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              -0.3%
+            </span>
+          </div>
+          <div class="stat-value white">$6.57</div>
+          <div class="stat-sub">30-day rolling avg</div>
+        </div>
+
+      </section>
+
+      <!-- Content Grid -->
+      <div id="content-grid">
+
+        <!-- LEFT COLUMN -->
+        <div id="left-col">
+
+          <!-- Roster Table -->
+          <div class="panel" id="roster">
+            <div class="panel-header">
+              <span class="panel-title">Model Roster</span>
+              <span class="panel-meta">8 of 47 models</span>
+            </div>
+            <table class="roster-table">
+              <thead>
+                <tr>
+                  <th>Model Name</th>
+                  <th>Platform</th>
+                  <th>Subscribers</th>
+                  <th>Revenue MTD</th>
+                  <th>Churn Risk</th>
+                  <th>Last Active</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="model-name">Luna</span></td>
+                  <td><span class="platform-tag"><span class="platform-dot"></span>Fansly</span></td>
+                  <td>3,241</td>
+                  <td class="td-revenue">$12,480</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td class="td-muted">2m ago</td>
+                </tr>
+                <tr>
+                  <td><span class="model-name">Aria</span></td>
+                  <td><span class="platform-tag"><span class="platform-dot"></span>Fansly</span></td>
+                  <td>2,890</td>
+                  <td class="td-revenue">$10,320</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td class="td-muted">5m ago</td>
+                </tr>
+                <tr>
+                  <td><span class="model-name">Nova</span></td>
+                  <td><span class="platform-tag"><span class="platform-dot"></span>Fansly</span></td>
+                  <td>1,654</td>
+                  <td class="td-revenue">$7,890</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td class="td-muted">1h ago</td>
+                </tr>
+                <tr>
+                  <td><span class="model-name">Zara</span></td>
+                  <td><span class="platform-tag"><span class="platform-dot"></span>Fansly</span></td>
+                  <td>1,201</td>
+                  <td class="td-revenue">$6,540</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td class="td-muted">3h ago</td>
+                </tr>
+                <tr>
+                  <td><span class="model-name">Mia</span></td>
+                  <td><span class="platform-tag"><span class="platform-dot"></span>Fansly</span></td>
+                  <td>987</td>
+                  <td class="td-revenue">$4,210</td>
+                  <td><span class="badge badge-high">High</span></td>
+                  <td class="td-muted">1d ago</td>
+                </tr>
+                <tr>
+                  <td><span class="model-name">Cleo</span></td>
+                  <td><span class="platform-tag"><span class="platform-dot"></span>Fansly</span></td>
+                  <td>843</td>
+                  <td class="td-revenue">$3,760</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td class="td-muted">6h ago</td>
+                </tr>
+                <tr>
+                  <td><span class="model-name">Jade</span></td>
+                  <td><span class="platform-tag"><span class="platform-dot"></span>Fansly</span></td>
+                  <td>721</td>
+                  <td class="td-revenue">$2,890</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td class="td-muted">4h ago</td>
+                </tr>
+                <tr>
+                  <td><span class="model-name">Kaia</span></td>
+                  <td><span class="platform-tag"><span class="platform-dot"></span>Fansly</span></td>
+                  <td>614</td>
+                  <td class="td-revenue">$2,180</td>
+                  <td><span class="badge badge-high">High</span></td>
+                  <td class="td-muted">2d ago</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Revenue Chart -->
+          <div class="panel" id="analytics">
+            <div class="panel-header">
+              <span class="panel-title">Revenue</span>
+              <span class="panel-meta">Sep 2025 — Feb 2026</span>
+            </div>
+            <div class="chart-wrap">
+              <!--
+                SVG chart layout:
+                viewBox: 0 0 580 220
+                Left padding for y-axis labels: 44px
+                Chart area: x=44, width=536, height=170 (y=0 to y=170)
+                Bottom labels at y=190
+                Bars sit on y=170 baseline
+                Bar width: 64px, gap fills remaining space evenly
+                6 bars across 536px: spacing = 536/6 = ~89.3px per slot, bar centered in slot
+              -->
+              <svg class="chart-svg" viewBox="0 0 580 215" xmlns="http://www.w3.org/2000/svg">
+
+                <!-- Grid lines (y values: 20k=152, 40k=128, 60k=104, 80k=80 on 170px scale where 84320=170) -->
+                <!-- Scale: 170px = 84320, so 1px = 497.8. 20k=40.2, 40k=80.4, 60k=120.6, 80k=160.8 -->
+                <!-- y baseline = 170, so grid lines at: 170-40=130, 170-80=90, 170-121=49, 170-161=9 -->
+                <line x1="44" y1="130" x2="580" y2="130" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                <line x1="44" y1="90"  x2="580" y2="90"  stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                <line x1="44" y1="49"  x2="580" y2="49"  stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                <line x1="44" y1="9"   x2="580" y2="9"   stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                <!-- Baseline -->
+                <line x1="44" y1="170" x2="580" y2="170" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+                <!-- Y-axis labels -->
+                <text x="38" y="134" text-anchor="end" font-size="10" fill="#555" font-family="Inter,sans-serif">$20k</text>
+                <text x="38" y="94"  text-anchor="end" font-size="10" fill="#555" font-family="Inter,sans-serif">$40k</text>
+                <text x="38" y="53"  text-anchor="end" font-size="10" fill="#555" font-family="Inter,sans-serif">$60k</text>
+                <text x="38" y="13"  text-anchor="end" font-size="10" fill="#555" font-family="Inter,sans-serif">$80k</text>
+
+                <!--
+                  Bar slots (center x of each):
+                  Slot width = 536/6 = 89.3
+                  Centers: 44 + 44.7 = 88.7, +89.3 = 178, +89.3 = 267.3, +89.3 = 356.6, +89.3 = 445.9, +89.3 = 535.2
+                  Bar left edge = center - 32
+
+                  Heights (px, baseline y=170):
+                  Sep $48200: 170*(48200/84320) = 97.0  → bar y=170-97=73, h=97
+                  Oct $55400: 170*(55400/84320) = 111.6 → bar y=170-112=58, h=112
+                  Nov $62100: 170*(62100/84320) = 125.1 → bar y=170-125=45, h=125
+                  Dec $71800: 170*(71800/84320) = 144.7 → bar y=170-145=25, h=145
+                  Jan $78300: 170*(78300/84320) = 157.8 → bar y=170-158=12, h=158
+                  Feb $84320: 170*(84320/84320) = 170   → bar y=170-170=0,  h=170
+                -->
+
+                <!-- Bar groups (each group animated) -->
+                <!-- SEP -->
+                <g class="bar-animated">
+                  <!-- Main face -->
+                  <rect x="57" y="73" width="64" height="97" fill="#C9A84C"/>
+                  <!-- Right 3D face -->
+                  <polygon points="121,73 131,63 131,160 121,170" fill="#8B6A22"/>
+                  <!-- Top 3D face -->
+                  <polygon points="57,73 67,63 131,63 121,73" fill="#E8C870"/>
+                </g>
+
+                <!-- OCT -->
+                <g class="bar-animated">
+                  <rect x="146" y="58" width="64" height="112" fill="#C9A84C"/>
+                  <polygon points="210,58 220,48 220,160 210,170" fill="#8B6A22"/>
+                  <polygon points="146,58 156,48 220,48 210,58" fill="#E8C870"/>
+                </g>
+
+                <!-- NOV -->
+                <g class="bar-animated">
+                  <rect x="235" y="45" width="64" height="125" fill="#C9A84C"/>
+                  <polygon points="299,45 309,35 309,160 299,170" fill="#8B6A22"/>
+                  <polygon points="235,45 245,35 309,35 299,45" fill="#E8C870"/>
+                </g>
+
+                <!-- DEC -->
+                <g class="bar-animated">
+                  <rect x="324" y="25" width="64" height="145" fill="#C9A84C"/>
+                  <polygon points="388,25 398,15 398,160 388,170" fill="#8B6A22"/>
+                  <polygon points="324,25 334,15 398,15 388,25" fill="#E8C870"/>
+                </g>
+
+                <!-- JAN -->
+                <g class="bar-animated">
+                  <rect x="413" y="12" width="64" height="158" fill="#C9A84C"/>
+                  <polygon points="477,12 487,2 487,160 477,170" fill="#8B6A22"/>
+                  <polygon points="413,12 423,2 487,2 477,12" fill="#E8C870"/>
+                </g>
+
+                <!-- FEB (current — slightly brighter) -->
+                <g class="bar-animated">
+                  <rect x="502" y="0" width="64" height="170" fill="#D4AE52"/>
+                  <polygon points="566,0 576,-10 576,160 566,170" fill="#9B7728"/>
+                  <polygon points="502,0 512,-10 576,-10 566,0" fill="#F0D880"/>
+                </g>
+
+                <!-- Month labels -->
+                <text x="89"  y="190" text-anchor="middle" font-size="11" fill="#666" font-family="Inter,sans-serif">Sep</text>
+                <text x="178" y="190" text-anchor="middle" font-size="11" fill="#666" font-family="Inter,sans-serif">Oct</text>
+                <text x="267" y="190" text-anchor="middle" font-size="11" fill="#666" font-family="Inter,sans-serif">Nov</text>
+                <text x="356" y="190" text-anchor="middle" font-size="11" fill="#666" font-family="Inter,sans-serif">Dec</text>
+                <text x="445" y="190" text-anchor="middle" font-size="11" fill="#666" font-family="Inter,sans-serif">Jan</text>
+                <text x="534" y="190" text-anchor="middle" font-size="11" fill="#C9A84C" font-family="Inter,sans-serif" font-weight="600">Feb</text>
+
+                <!-- Value labels above bars -->
+                <text x="89"  y="67" text-anchor="middle" font-size="9" fill="rgba(201,168,76,0.55)" font-family="Inter,sans-serif">$48.2k</text>
+                <text x="178" y="52" text-anchor="middle" font-size="9" fill="rgba(201,168,76,0.55)" font-family="Inter,sans-serif">$55.4k</text>
+                <text x="267" y="39" text-anchor="middle" font-size="9" fill="rgba(201,168,76,0.55)" font-family="Inter,sans-serif">$62.1k</text>
+                <text x="356" y="19" text-anchor="middle" font-size="9" fill="rgba(201,168,76,0.55)" font-family="Inter,sans-serif">$71.8k</text>
+                <text x="445" y="6"  text-anchor="middle" font-size="9" fill="rgba(201,168,76,0.55)" font-family="Inter,sans-serif">$78.3k</text>
+                <text x="534" y="-6" text-anchor="middle" font-size="9" fill="#C9A84C" font-family="Inter,sans-serif" font-weight="600">$84.3k</text>
+
+              </svg>
+            </div>
+          </div>
+
+        </div><!-- /left-col -->
+
+        <!-- RIGHT COLUMN -->
+        <div id="right-col">
+
+          <!-- Quick Actions -->
+          <div class="glass-card">
+            <div class="panel-header">
+              <span class="panel-title">Quick Actions</span>
+            </div>
+            <div class="actions-list">
+
+              <button class="action-btn">
+                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.86a16 16 0 0 0 6.29 6.29l.97-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                Message Blast
+              </button>
+
+              <button class="action-btn">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export Report
+              </button>
+
+              <button class="action-btn">
+                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                Add Model
+              </button>
+
+              <button class="action-btn">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                DNC Scrub
+              </button>
+
+            </div>
+          </div>
+
+          <!-- Activity Feed -->
+          <div class="glass-card">
+            <div class="panel-header">
+              <span class="panel-title">Recent Activity</span>
+              <span class="panel-meta">Live</span>
+            </div>
+            <div class="feed-list">
+
+              <div class="feed-item">
+                <span class="feed-dot" style="--dot-color: #60a5fa"></span>
+                <div class="feed-content">
+                  <div class="feed-row">
+                    <span class="feed-name">Luna</span>
+                    <span class="feed-time">2m ago</span>
+                  </div>
+                  <span class="feed-action">new subscriber</span>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <span class="feed-dot" style="--dot-color: #C9A84C"></span>
+                <div class="feed-content">
+                  <div class="feed-row">
+                    <span class="feed-name">Aria</span>
+                    <span class="feed-time">8m ago</span>
+                  </div>
+                  <span class="feed-action">tip received · $50</span>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <span class="feed-dot" style="--dot-color: #a78bfa"></span>
+                <div class="feed-content">
+                  <div class="feed-row">
+                    <span class="feed-name">Nova</span>
+                    <span class="feed-time">24m ago</span>
+                  </div>
+                  <span class="feed-action">PPV purchased</span>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <span class="feed-dot" style="--dot-color: #22c55e"></span>
+                <div class="feed-content">
+                  <div class="feed-row">
+                    <span class="feed-name">Zara</span>
+                    <span class="feed-time">1h ago</span>
+                  </div>
+                  <span class="feed-action">subscription renewed</span>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <span class="feed-dot" style="--dot-color: #ef4444"></span>
+                <div class="feed-content">
+                  <div class="feed-row">
+                    <span class="feed-name">Mia</span>
+                    <span class="feed-time">2h ago</span>
+                  </div>
+                  <span class="feed-action">churn risk flagged</span>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <span class="feed-dot" style="--dot-color: #888"></span>
+                <div class="feed-content">
+                  <div class="feed-row">
+                    <span class="feed-name">Cleo</span>
+                    <span class="feed-time">3h ago</span>
+                  </div>
+                  <span class="feed-action">mass message sent</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div><!-- /right-col -->
+
+      </div><!-- /content-grid -->
+
+    </div><!-- /main-inner -->
+  </main>
+
+</div><!-- /app -->
+
+<!-- ─── Toast Container ──────────────────────────────────────────────────────── -->
+<div id="toast-container" style="position:fixed;top:24px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
+
+<!-- ─── Page Transition Overlay ──────────────────────────────────────────────── -->
+<div id="page-overlay" style="position:fixed;inset:0;background:#000;z-index:9999;pointer-events:none;opacity:1;transition:opacity 0.3s ease;"></div>
+
+<!-- Three.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  // ─── Three.js Torus ────────────────────────────────────────────────────────
+  (function () {
+    const canvas = document.getElementById('torus-canvas');
+    const wrap   = document.getElementById('torus-wrap');
+
+    const W = wrap.offsetWidth  || 300;
+    const H = wrap.offsetHeight || 300;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(W, H);
+    renderer.setClearColor(0x000000, 0);
+
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
+    camera.position.z = 5;
+
+    // Outer torus
+    const geo1  = new THREE.TorusGeometry(1.8, 0.55, 8, 16);
+    const edges1 = new THREE.EdgesGeometry(geo1);
+    const mat1   = new THREE.LineBasicMaterial({ color: 0xC9A84C, transparent: true, opacity: 0.45 });
+    const torus1 = new THREE.LineSegments(edges1, mat1);
+    scene.add(torus1);
+
+    // Inner ring for depth
+    const geo2   = new THREE.TorusGeometry(1.0, 0.25, 5, 10);
+    const edges2 = new THREE.EdgesGeometry(geo2);
+    const mat2   = new THREE.LineBasicMaterial({ color: 0xC9A84C, transparent: true, opacity: 0.2 });
+    const torus2 = new THREE.LineSegments(edges2, mat2);
+    torus2.rotation.x = Math.PI / 3;
+    scene.add(torus2);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      torus1.rotation.x += 0.005;
+      torus1.rotation.y += 0.009;
+      torus2.rotation.x += 0.007;
+      torus2.rotation.z += 0.004;
+
+      // Pulse opacity
+      const t = Date.now() * 0.001;
+      mat1.opacity = 0.38 + Math.sin(t * 0.8) * 0.08;
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Keep renderer sized to wrap
+    window.addEventListener('resize', () => {
+      const nw = wrap.offsetWidth  || 300;
+      const nh = wrap.offsetHeight || 300;
+      camera.aspect = nw / nh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nw, nh);
+    });
+  })();
+</script>
+
+<script>
+  // ─── Toast ────────────────────────────────────────────────────────────────
+  function showToast(message) {
+    var container = document.getElementById('toast-container');
+    var toast = document.createElement('div');
+    toast.style.cssText = [
+      'background:#1a1a1a',
+      'border:1px solid rgba(201,168,76,0.3)',
+      'border-left:4px solid #C9A84C',
+      'color:#ffffff',
+      'padding:14px 18px',
+      'border-radius:8px',
+      'font-family:Inter,sans-serif',
+      'font-size:13px',
+      'font-weight:500',
+      'pointer-events:all',
+      'transform:translateX(120%)',
+      'transition:transform 0.28s cubic-bezier(0.22,1,0.36,1),opacity 0.2s ease',
+      'opacity:0',
+      'min-width:220px',
+      'max-width:320px',
+      'box-shadow:0 4px 24px rgba(0,0,0,0.5)',
+      'white-space:nowrap'
+    ].join(';');
+    toast.textContent = message;
+    container.appendChild(toast);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        toast.style.transform = 'translateX(0)';
+        toast.style.opacity = '1';
+      });
+    });
+    setTimeout(function () {
+      toast.style.transform = 'translateX(120%)';
+      toast.style.opacity = '0';
+      setTimeout(function () { toast.remove(); }, 280);
+    }, 3000);
+  }
+
+  // ─── Page Transitions ─────────────────────────────────────────────────────
+  (function () {
+    var overlay = document.getElementById('page-overlay');
+    // Fade in on page load
+    requestAnimationFrame(function () {
+      overlay.style.opacity = '0';
+    });
+    // Fade out before navigating away
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href]');
+      if (!link) return;
+      var href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('//') || href.startsWith('mailto:')) return;
+      e.preventDefault();
+      overlay.style.transition = 'opacity 0.2s ease';
+      overlay.style.pointerEvents = 'all';
+      overlay.style.opacity = '1';
+      setTimeout(function () { window.location.href = href; }, 220);
+    });
+  })();
+</script>
+
+</body>
+</html>
